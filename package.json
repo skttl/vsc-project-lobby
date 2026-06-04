@@ -2,7 +2,7 @@
   "name": "vsc-project-lobby",
   "displayName": "Project Lobby",
   "description": "A start page for switching between projects. Shows all git repositories beneath configured base folders in a hierarchical tree.",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "publisher": "skttl",
   "private": true,
   "license": "MIT",
