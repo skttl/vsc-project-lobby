@@ -33,9 +33,6 @@ jobs:
       - name: Compile TypeScript
         run: npm run compile
 
-      - name: Package extension
-        run: npx vsce package --no-dependencies
-
       - name: Release
         id: release
         env:
@@ -43,12 +40,17 @@ jobs:
         run: |
           TAG_BEFORE=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
           npx semantic-release
+          git fetch --tags
           TAG_AFTER=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
           if [ "$TAG_AFTER" != "$TAG_BEFORE" ] && [ "$TAG_AFTER" != "none" ]; then
             echo "new_release_published=true" >> $GITHUB_OUTPUT
           else
             echo "new_release_published=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Package extension
+        if: steps.release.outputs.new_release_published == 'true'
+        run: npx vsce package --no-dependencies
 
       - name: Publish to VS Code Marketplace
         if: steps.release.outputs.new_release_published == 'true'
