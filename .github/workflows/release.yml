@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile TypeScript
+        run: npm run compile
+
+      - name: Package extension
+        run: npx vsce package --no-dependencies
+
+      - name: Release
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_BEFORE=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
+          npx semantic-release
+          TAG_AFTER=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
+          if [ "$TAG_AFTER" != "$TAG_BEFORE" ] && [ "$TAG_AFTER" != "none" ]; then
+            echo "new_release_published=true" >> $GITHUB_OUTPUT
+          else
+            echo "new_release_published=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish to VS Code Marketplace
+        if: steps.release.outputs.new_release_published == 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx vsce publish --no-dependencies --pat $VSCE_PAT
+
+      - name: Publish to Open VSX Registry
+        if: steps.release.outputs.new_release_published == 'true'
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: npx ovsx publish *.vsix --pat $OVSX_PAT

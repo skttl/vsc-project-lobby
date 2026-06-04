@@ -1,0 +1,271 @@
+{
+  "name": "vsc-project-lobby",
+  "displayName": "Project Lobby",
+  "description": "A start page for switching between projects. Shows all git repositories beneath configured base folders in a hierarchical tree.",
+  "version": "0.0.0",
+  "publisher": "skttl",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skttl/vsc-project-lobby.git"
+  },
+  "bugs": {
+    "url": "https://github.com/skttl/vsc-project-lobby/issues"
+  },
+  "homepage": "https://github.com/skttl/vsc-project-lobby#readme",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "projects",
+    "start page",
+    "switcher",
+    "workspace"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "projectLobby",
+          "title": "Project Lobby",
+          "icon": "media/activity-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "projectLobby": [
+        {
+          "id": "projectLobbyView",
+          "name": "Projects",
+          "icon": "media/activity-icon.svg",
+          "contextualTitle": "Project Lobby"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "projectLobbyView",
+        "contents": "No base folders configured yet.\n\nAdd a base folder to scan for git repositories.\n[Add base folder...](command:projectLobby.addBaseFolder)\n\nYou can also configure base folders in [settings](command:workbench.action.openSettings?%22projectLobby.baseFolders%22).",
+        "when": "projectLobby.initialized"
+      }
+    ],
+    "commands": [
+      {
+        "command": "projectLobby.refresh",
+        "title": "Refresh",
+        "category": "Project Lobby",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "projectLobby.refreshing",
+        "title": "Refreshing...",
+        "category": "Project Lobby",
+        "icon": "$(loading~spin)"
+      },
+      {
+        "command": "projectLobby.addBaseFolder",
+        "title": "Add Base Folder...",
+        "category": "Project Lobby",
+        "icon": "$(add)"
+      },
+      {
+        "command": "projectLobby.removeBaseFolder",
+        "title": "Remove Base Folder",
+        "category": "Project Lobby"
+      },
+      {
+        "command": "projectLobby.openInNewWindow",
+        "title": "Open in New Window",
+        "category": "Project Lobby"
+      },
+      {
+        "command": "projectLobby.openInCurrentWindow",
+        "title": "Open in Current Window",
+        "category": "Project Lobby"
+      },
+      {
+        "command": "projectLobby.hide",
+        "title": "Hide",
+        "category": "Project Lobby"
+      },
+      {
+        "command": "projectLobby.manageHidden",
+        "title": "Manage Hidden Items...",
+        "category": "Project Lobby",
+        "icon": "$(eye-closed)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "projectLobby.addBaseFolder",
+          "when": "view == projectLobbyView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "projectLobby.refresh",
+          "when": "view == projectLobbyView && !projectLobby.scanning",
+          "group": "navigation@2"
+        },
+        {
+          "command": "projectLobby.refreshing",
+          "when": "view == projectLobbyView && projectLobby.scanning",
+          "group": "navigation@2"
+        },
+        {
+          "command": "projectLobby.manageHidden",
+          "when": "view == projectLobbyView",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "projectLobby.openInNewWindow",
+          "when": "view == projectLobbyView && viewItem == repo",
+          "group": "navigation@1"
+        },
+        {
+          "command": "projectLobby.openInCurrentWindow",
+          "when": "view == projectLobbyView && viewItem == repo",
+          "group": "navigation@2"
+        },
+        {
+          "command": "projectLobby.removeBaseFolder",
+          "when": "view == projectLobbyView && viewItem == baseFolder",
+          "group": "1_modification@1"
+        },
+        {
+          "command": "projectLobby.hide",
+          "when": "view == projectLobbyView && viewItem == repo",
+          "group": "1_modification@1"
+        },
+        {
+          "command": "projectLobby.hide",
+          "when": "view == projectLobbyView && viewItem == group",
+          "group": "1_modification@1"
+        },
+        {
+          "command": "projectLobby.hide",
+          "when": "view == projectLobbyView && viewItem == baseFolder",
+          "group": "1_modification@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "projectLobby.refreshing",
+          "when": "false"
+        },
+        {
+          "command": "projectLobby.openInNewWindow",
+          "when": "false"
+        },
+        {
+          "command": "projectLobby.openInCurrentWindow",
+          "when": "false"
+        },
+        {
+          "command": "projectLobby.removeBaseFolder",
+          "when": "false"
+        },
+        {
+          "command": "projectLobby.hide",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Project Lobby",
+      "properties": {
+        "projectLobby.baseFolders": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "markdownDescription": "Absolute paths to the base folders that should be scanned for git repositories. See [configuration docs](https://github.com/skttl/vsc-project-lobby/blob/main/docs/configuration.md)."
+        },
+        "projectLobby.maxDepth": {
+          "type": "number",
+          "default": 4,
+          "minimum": 1,
+          "markdownDescription": "Maximum folder depth to descend below each base folder while searching for git repositories. Descent stops at the first `.git` folder regardless of this value."
+        },
+        "projectLobby.ignoreFolders": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "node_modules",
+            ".git",
+            "bin",
+            "obj",
+            "dist",
+            ".vs",
+            ".vscode"
+          ],
+          "markdownDescription": "Folder names to skip while scanning. Matching is case-insensitive."
+        },
+        "projectLobby.openBehavior": {
+          "type": "string",
+          "enum": [
+            "newWindow",
+            "currentWindow"
+          ],
+          "enumDescriptions": [
+            "Open the selected project in a new window.",
+            "Open the selected project in the current window."
+          ],
+          "default": "newWindow",
+          "markdownDescription": "Default action when clicking a repository. The other action is always available from the right-click context menu."
+        },
+        "projectLobby.faviconWebRoots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "wwwroot",
+            "public",
+            "static",
+            "assets",
+            "src/assets"
+          ],
+          "markdownDescription": "Subfolders (relative to a repository root) to search for a favicon, in addition to the repository root itself."
+        },
+        "projectLobby.faviconMaxDepth": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "markdownDescription": "Maximum depth to search inside a repository for a favicon to use as its icon."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.0",
+    "@semantic-release/npm": "^12.0.0",
+    "@semantic-release/release-notes-generator": "^14.0.0",
+    "semantic-release": "^24.0.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^3.0.0"
+  }
+}
